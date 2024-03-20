@@ -18,7 +18,9 @@ public:
     ValueType Type;
     std::string ObjectType;
     virtual ~Value() = default;
-    virtual std::string GetHash() = 0;
+    virtual std::string GetHash() {
+        return "0";
+    }
 
     Value() = default;
 };

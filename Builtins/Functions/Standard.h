@@ -25,6 +25,7 @@ public:
     static Value* Split(std::vector<Value*> args);
     static Value* LoadLib(std::vector<Value*> args);
     static Value* GetVar(std::vector<Value*> args);
+    static Value* GetRuntime(const std::vector<Value*>& args);
 };
 
 

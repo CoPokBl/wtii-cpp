@@ -12,7 +12,7 @@ const std::map<std::string, MethodDefinitionStatement*> BuiltIns::MethodDefiniti
 
         // Standard
         { "exit", new MethodDefinitionStatement("exit", "null", { std::make_pair("code", "int") }) },
-        { "str", new MethodDefinitionStatement("str", "string", { std::make_pair("value", "null") }) },
+        { "str", new MethodDefinitionStatement("str", "string", { std::make_pair("value", "any") }) },
         { "add", new MethodDefinitionStatement("add", "int", { std::make_pair("a", "int"), std::make_pair("b", "int") }) },
         { "subtract", new MethodDefinitionStatement("subtract", "int", { std::make_pair("a", "int"), std::make_pair("b", "int") }) },
         { "multiply", new MethodDefinitionStatement("multiply", "int", { std::make_pair("a", "int"), std::make_pair("b", "int") }) },
@@ -24,7 +24,9 @@ const std::map<std::string, MethodDefinitionStatement*> BuiltIns::MethodDefiniti
         { "type_of", new MethodDefinitionStatement("type_of", "string", { std::make_pair("a", "null") })},
         { "assert", new MethodDefinitionStatement("assert", "null", { std::make_pair("a", "bool") }) },
         { "split", new MethodDefinitionStatement("split", "string[]", { std::make_pair("a", "string"), std::make_pair("b", "string") }) },
+        { "get_var", new MethodDefinitionStatement("get_var", "any", { std::make_pair("a", "string") }) },
         { "load_lib", new MethodDefinitionStatement("load_lib", "null", { std::make_pair("a", "string") }) },
+        { "get_runtime", new MethodDefinitionStatement("get_runtime", "string", { })}
 };
 
 const std::map<std::string, std::function<Value*(std::vector<Value*>)>> BuiltIns::Functions = {
@@ -41,7 +43,16 @@ const std::map<std::string, std::function<Value*(std::vector<Value*>)>> BuiltIns
         { "subtract", Standard::Subtract },
         { "multiply", Standard::Multiply },
         { "divide", Standard::Divide },
-        { "concat", Standard::Concat }
+        { "concat", Standard::Concat },
+        { "equals", Standard::Equals },
+        { "not", Standard::Not },
+        { "get_array_object", Standard::GetArrayObject },
+        { "type_of", Standard::TypeOf },
+        { "assert", Standard::Assert },
+        { "split", Standard::Split },
+        { "load_lib", Standard::LoadLib },
+        { "get_var", Standard::GetVar },
+        { "get_runtime", Standard::GetRuntime }
 };
 
 const std::map<std::string, int> BuiltIns::Libraries = {

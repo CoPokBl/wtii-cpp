@@ -30,12 +30,11 @@ Value* IO::PrintLine(std::vector<Value*> args) {
     return Null;
 }
 
-Value* IO::ReadKey(const std::vector<Value*>& args) {
+Value* IO::ReadKey(const std::vector<Value*>& args) {  // Functions the same as dotnet's Console.ReadKey(), doesn't need enter to be pressed
     if (!args.empty()) {
         throw_err("read_key() takes exactly 0 arguments");
     }
-    char key;
-    std::cin >> key;
+    char key = std::cin.get();
     return new Constant(std::string(1, key), "string");
 }
 
@@ -44,6 +43,6 @@ Value* IO::ReadLine(const std::vector<Value*>& args) {
         throw_err("read_line() takes exactly 0 arguments");
     }
     std::string line;
-    std::getline(std::cin, line);
+    std::cin >> line;
     return new Constant(line, "string");
 }

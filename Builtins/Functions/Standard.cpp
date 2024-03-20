@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Standard.h"
 #include "../../ProgramExitException.h"
 #include "../../Interpreter/Interpreter.h"
@@ -92,7 +93,7 @@ Value *Standard::Equals(std::vector<Value *> args) {
     RealReference* ar = Interpreter::ResolveValue(args[0]);
     RealReference* br = Interpreter::ResolveValue(args[1]);
     std::string a = ar->GetHash();
-    std::string b = ar->GetHash();
+    std::string b = br->GetHash();
     return new Constant(a == b ? "true" : "false", "bool");
 }
 
@@ -165,7 +166,6 @@ Value *Standard::Split(std::vector<Value *> args) {
 
 Value *Standard::LoadLib(std::vector<Value *> args) {
     throw_err("LoadLib is not implemented");
-    return Null;
 }
 
 Value *Standard::GetVar(std::vector<Value *> args) {
@@ -183,5 +183,9 @@ Value *Standard::GetVar(std::vector<Value *> args) {
     }
 
     return Interpreter::GetScope()->top()->Variables[varName].second;
+}
+
+Value *Standard::GetRuntime(const std::vector<Value *>& args) {
+    return new Constant("WtiiInterpreter-cpp", "string");
 }
 
