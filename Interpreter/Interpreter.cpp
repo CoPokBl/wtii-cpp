@@ -1,5 +1,6 @@
 #include <iostream>
 #include <utility>
+#include <fstream>
 #include "Interpreter.h"
 #include "stack"
 #include "../ParsedScripts/Values/RealReference.h"
@@ -490,10 +491,9 @@ Value* Interpreter::ExecuteFunction(MethodDefinitionStatement* function, bool& d
             }
 
             else if (auto loadLib = dynamic_cast<LoadLibStatement*>(statement)) {
-                // TODO: Implement libraries
+                LoadLibrary(loadLib->Lib);
             }
 
-            // Continue with other dynamic_cast checks for other statement types...
             else {
                 throw std::runtime_error("Unknown statement type: " + std::to_string(static_cast<int>(statement->Type)));
             }
@@ -537,4 +537,52 @@ int Interpreter::Interpret(ParsedScript *script) {
 
 std::stack<Scope*>* Interpreter::GetScope() {
     return &scopes;
+}
+
+void Interpreter::LoadLibrary(const std::string &name) {
+    bool fileExists = false;
+    for (auto& lib : BuiltIns::Libraries) {
+        if (lib.first == name) {
+            fileExists = true;
+            break;
+        }
+    }
+
+    // Check file system
+    std::ifstream file(name);
+    if (file) {
+        fileExists = true;
+        // Keep the file open because we will need to read from it later
+    }
+
+    if (!fileExists) {
+        throw_err("Library " + name + " does not exist.");
+    }
+
+    bool containsPeriod = name.find('.') != std::string::npos;
+    std::string fileExtension = containsPeriod ? name.substr(name.find_last_of('.') + 1) : "";
+
+    if (fileExtension == "wtii") {  // WTII library file
+        // TODO: Load the library
+        // This will involve reading the file and parsing/interpreting it
+        // which is not currently implemented.
+    } else if (fileExtension == "dll") {  // C# library file
+        // TODO: Load the library
+        // This will involve loading the DLL and calling the functions.
+    } else if (fileExtension.empty()) {  // Check for builtin
+        if (BuiltIns::Libraries.count(name) == 0) {
+            throw_err("Library " + name + " does not exist.");
+        }
+
+        // TODO: Load the library
+        // Builtin libraries are not currently supported.
+    } else {
+        throw_err("Library file extension not recognised: " + fileExtension);
+    }
+
+    file.close();
+
+#ifdef DEBUG
+    std::cout << "Loaded library: " << name << std::endl;
+#endif
 }

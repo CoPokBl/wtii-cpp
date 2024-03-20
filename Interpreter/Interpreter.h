@@ -17,6 +17,7 @@ public:
     static int Interpret(ParsedScript* script);
     static RealReference* ResolveValue(Value* value, std::string exceptedType = "");
     static std::stack<Scope*>* GetScope();
+    static void LoadLibrary(const std::string& name);
 
 private:
     static void NewScope();
