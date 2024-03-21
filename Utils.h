@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "RuntimeException.h"
+#include "ParsedScripts/Values/Constant.h"
 
 // Helpful macros
 #define throw_err(msg) throw RuntimeException(new Constant(msg, "string"))

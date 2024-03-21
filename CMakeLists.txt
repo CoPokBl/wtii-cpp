@@ -1,8 +1,9 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.22)  # Probably works with older versions too, but I haven't tested it
 project(WtiiInterpreter)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Add debug flag to the project if it's in debug mode
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     add_compile_definitions(DEBUG)
 endif()
@@ -45,7 +46,13 @@ add_executable(WtiiInterpreter main.cpp
         Builtins/Functions/Standard.cpp
         Builtins/Functions/Standard.h
         Builtins/Functions/IO.cpp
-        Builtins/Functions/IO.h)
+        Builtins/Functions/IO.h
+        Builtins/Functions/Convert.cpp
+        Builtins/Functions/Convert.h
+        Builtins/Functions/WtiiJson.cpp
+        Builtins/Functions/WtiiJson.h
+        Builtins/Functions/Files.cpp
+        Builtins/Functions/Files.h)
 
 add_library(wtiiint SHARED library.cpp
         library.h
@@ -88,4 +95,12 @@ add_library(wtiiint SHARED library.cpp
         Builtins/Functions/IO.cpp
         Builtins/Functions/IO.h
         library.cpp
-        library.h)
+        library.h
+        Builtins/Functions/Convert.cpp
+        Builtins/Functions/Convert.h
+        Builtins/Functions/WtiiJson.cpp
+        Builtins/Functions/WtiiJson.h
+        Builtins/Functions/Files.cpp
+        Builtins/Functions/Files.h)
+
+# CLion doesn't add new files to both targets automatically, only the last one which is the library

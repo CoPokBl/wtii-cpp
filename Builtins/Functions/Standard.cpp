@@ -1,9 +1,7 @@
-#include <iostream>
+#include <filesystem>
 #include "Standard.h"
 #include "../../ProgramExitException.h"
 #include "../../Interpreter/Interpreter.h"
-#include "../../ParsedScripts/Values/ClassInstance.h"
-#include "../../Utils.h"
 #include "../../ParsedScripts/Values/ArrayValue.h"
 
 Value* Standard::Exit(std::vector<Value*> args) {
@@ -189,3 +187,68 @@ Value *Standard::GetRuntime(const std::vector<Value *>& args) {
     return new Constant("WtiiInterpreter-cpp", "string");
 }
 
+Value *Standard::MoreThan(std::vector<Value *> args) {
+    RealReference* ar = Interpreter::ResolveValue(args[0]);
+    RealReference* br = Interpreter::ResolveValue(args[1]);
+    if (dynamic_cast<Constant*>(ar) == nullptr || dynamic_cast<Constant*>(br) == nullptr) {
+        throw_err("more_than() arguments must be constants");
+    }
+    float a = std::stof(dynamic_cast<Constant*>(ar)->Value);
+    float b = std::stof(dynamic_cast<Constant*>(br)->Value);
+    return new Constant(a > b ? "true" : "false", "bool");
+}
+
+Value *Standard::LessThan(std::vector<Value *> args) {
+    RealReference* ar = Interpreter::ResolveValue(args[0]);
+    RealReference* br = Interpreter::ResolveValue(args[1]);
+    if (dynamic_cast<Constant*>(ar) == nullptr || dynamic_cast<Constant*>(br) == nullptr) {
+        throw_err("less_than() arguments must be constants");
+    }
+    float a = std::stof(dynamic_cast<Constant*>(ar)->Value);
+    float b = std::stof(dynamic_cast<Constant*>(br)->Value);
+    return new Constant(a < b ? "true" : "false", "bool");
+}
+
+Value *Standard::MoreThanOrEquals(std::vector<Value *> args) {
+    RealReference* ar = Interpreter::ResolveValue(args[0]);
+    RealReference* br = Interpreter::ResolveValue(args[1]);
+    if (dynamic_cast<Constant*>(ar) == nullptr || dynamic_cast<Constant*>(br) == nullptr) {
+        throw_err("more_than_or_equals() arguments must be constants");
+    }
+    float a = std::stof(dynamic_cast<Constant*>(ar)->Value);
+    float b = std::stof(dynamic_cast<Constant*>(br)->Value);
+    return new Constant(a >= b ? "true" : "false", "bool");
+}
+
+Value *Standard::LessThanOrEquals(std::vector<Value *> args) {
+    RealReference* ar = Interpreter::ResolveValue(args[0]);
+    RealReference* br = Interpreter::ResolveValue(args[1]);
+    if (dynamic_cast<Constant*>(ar) == nullptr || dynamic_cast<Constant*>(br) == nullptr) {
+        throw_err("less_than_or_equals() arguments must be constants");
+    }
+    float a = std::stof(dynamic_cast<Constant*>(ar)->Value);
+    float b = std::stof(dynamic_cast<Constant*>(br)->Value);
+    return new Constant(a <= b ? "true" : "false", "bool");
+}
+
+Value *Standard::And(std::vector<Value *> args) {
+    RealReference* ar = Interpreter::ResolveValue(args[0]);
+    RealReference* br = Interpreter::ResolveValue(args[1]);
+    auto constantA = dynamic_cast<Constant*>(ar);
+    auto constantB = dynamic_cast<Constant*>(br);
+    if (constantA == nullptr || constantB == nullptr) {
+        throw_err("and() arguments must be constants");
+    }
+    return new Constant(constantA->Value == "true" && constantB->Value == "true" ? "true" : "false", "bool");
+}
+
+Value *Standard::Or(std::vector<Value *> args) {
+    RealReference* ar = Interpreter::ResolveValue(args[0]);
+    RealReference* br = Interpreter::ResolveValue(args[1]);
+    auto constantA = dynamic_cast<Constant*>(ar);
+    auto constantB = dynamic_cast<Constant*>(br);
+    if (constantA == nullptr || constantB == nullptr) {
+        throw_err("or() arguments must be constants");
+    }
+    return new Constant(constantA->Value == "true" || constantB->Value == "true" ? "true" : "false", "bool");
+}

@@ -26,6 +26,12 @@ public:
     static Value* LoadLib(std::vector<Value*> args);
     static Value* GetVar(std::vector<Value*> args);
     static Value* GetRuntime(const std::vector<Value*>& args);
+    static Value* MoreThan(std::vector<Value*> args);
+    static Value* LessThan(std::vector<Value*> args);
+    static Value* MoreThanOrEquals(std::vector<Value*> args);
+    static Value* LessThanOrEquals(std::vector<Value*> args);
+    static Value* And(std::vector<Value*> args);
+    static Value* Or(std::vector<Value*> args);
 };
 
 
