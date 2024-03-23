@@ -37,6 +37,8 @@ const std::map<std::string, MethodDefinitionStatement*> BuiltIns::MethodDefiniti
         { "less_than_or_equals", new MethodDefinitionStatement("less_than_or_equals", "bool", { std::make_pair("a", "float"), std::make_pair("b", "float") }) },
         { "and", new MethodDefinitionStatement("and", "bool", { std::make_pair("a", "bool"), std::make_pair("b", "bool") }) },
         { "or", new MethodDefinitionStatement("or", "bool", { std::make_pair("a", "bool"), std::make_pair("b", "bool") }) },
+        { "array_append", new MethodDefinitionStatement("array_append", "any[]", { std::make_pair("arr", "any[]"), std::make_pair("a", "any") }) },
+        { "empty_array", new MethodDefinitionStatement("empty_array", "any[]", { std::make_pair("type", "class") }) },
 
         // Convert
         { "to_int", new MethodDefinitionStatement("to_int", "int", { std::make_pair("a", "float") }) },
@@ -91,6 +93,8 @@ const std::map<std::string, std::function<Value*(std::vector<Value*>)>> BuiltIns
         { "less_than_or_equals", Standard::LessThanOrEquals },
         { "and", Standard::And },
         { "or", Standard::Or },
+        { "array_append", Standard::ArrayAppend },
+        { "empty_array", Standard::EmptyArray },
 
         // Convert
         { "to_int", Convert::ToInt },

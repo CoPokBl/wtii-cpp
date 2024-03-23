@@ -252,3 +252,19 @@ Value *Standard::Or(std::vector<Value *> args) {
     }
     return new Constant(constantA->Value == "true" || constantB->Value == "true" ? "true" : "false", "bool");
 }
+
+Value *Standard::ArrayAppend(std::vector<Value *> args) {
+    RealReference* ar = Interpreter::ResolveValue(args[0]);
+    RealReference* br = Interpreter::ResolveValue(args[1]);
+    auto arrVal = dynamic_cast<ArrayValue*>(ar);
+    if (arrVal == nullptr) {
+        throw_err("Not array val");
+    }
+    arrVal->Values.push_back(br);
+    return arrVal;
+}
+
+Value *Standard::EmptyArray(std::vector<Value *> args) {
+    auto* arr = new ArrayValue(dynamic_cast<Constant*>(args[0])->Value, {});
+    return arr;
+}

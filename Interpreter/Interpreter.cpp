@@ -236,6 +236,7 @@ Value* Interpreter::EvalFunction(MethodDefinitionStatement* method, std::vector<
     }
 
     Value* result = method->CsFunc != nullptr ? method->CsFunc(args) : ExecuteFunction(method);
+    result = ResolveValue(result, method->ReturnType);
     EndScope();
     return result;
 }
@@ -264,7 +265,7 @@ RealReference* Interpreter::ResolveValue(Value* value, std::string exceptedType)
         return ResolveValue(eval, exceptedType);
     }
 
-    return Null;
+    throw_err("Unknown value type: " + std::to_string(static_cast<int>(value->Type)));
 }
 
 Value* Interpreter::EvalVariable(Variable* variable) {
@@ -308,9 +309,9 @@ Value* Interpreter::ExecuteFunction(MethodDefinitionStatement *function) {
 
 Value* Interpreter::ExecuteFunction(MethodDefinitionStatement* function, bool& didReturn) {
     try {
-        if (function->Statements.empty()) {
-            std::cout << "Function has no statements: " << function->Name << std::endl;
-        }
+//        if (function->Statements.empty()) {
+//            std::cout << "Function has no statements: " << function->Name << std::endl;
+//        }
         for (auto& statement : function->Statements) {
 
             // Function Call

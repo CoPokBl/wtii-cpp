@@ -32,6 +32,8 @@ public:
     static Value* LessThanOrEquals(std::vector<Value*> args);
     static Value* And(std::vector<Value*> args);
     static Value* Or(std::vector<Value*> args);
+    static Value* ArrayAppend(std::vector<Value*> args);
+    static Value* EmptyArray(std::vector<Value*> args);
 };
 
 
