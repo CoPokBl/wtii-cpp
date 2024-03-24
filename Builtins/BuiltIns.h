@@ -7,10 +7,11 @@
 #include <functional>
 #include "../ParsedScripts/Values/Value.h"
 #include "../ParsedScripts/Statements/MethodDefinitiionStatement.h"
+#include "../LIbraries/IWtiiLibrary.h"
 
 class BuiltIns {
 public:
-    static const std::map<std::string, int> Libraries;
+    static const std::map<std::string, IWtiiLibrary*> Libraries;
     static const std::map<std::string, std::function<Value*(std::vector<Value*>)>> Functions;
     static const std::map<std::string, MethodDefinitionStatement*> MethodDefinitions;
 };

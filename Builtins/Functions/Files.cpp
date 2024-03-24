@@ -162,17 +162,6 @@ Value *Files::GetFullPath(const std::vector<Value *> &args) {
     if (constant->ObjectType != "string") {
         throw_err("Not string val");
     }
-    std::filesystem::path pathInput(constant->Value);
 
-    // Add current path if the input path is relative
-    std::filesystem::path fullPath;
-    if (pathInput.is_absolute()) {
-        fullPath = pathInput;
-    } else {
-        std::filesystem::path currentPath = std::filesystem::current_path();
-        fullPath = currentPath / pathInput;
-    }
-    fullPath = fullPath.lexically_normal();
-
-    return new Constant(fullPath.string(), "string");
+    return new Constant(Utils::GetAbsolutePath(constant->Value), "string");
 }

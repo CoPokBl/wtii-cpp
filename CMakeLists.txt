@@ -52,7 +52,10 @@ add_executable(WtiiInterpreter main.cpp
         Builtins/Functions/WtiiJson.cpp
         Builtins/Functions/WtiiJson.h
         Builtins/Functions/Files.cpp
-        Builtins/Functions/Files.h)
+        Builtins/Functions/Files.h
+        LIbraries/IWtiiLibrary.h
+        LIbraries/WtiiLibraryFactory.cpp
+        LIbraries/WtiiLibraryFactory.h)
 
 add_library(wtiiint SHARED library.cpp
         library.h
@@ -101,6 +104,9 @@ add_library(wtiiint SHARED library.cpp
         Builtins/Functions/WtiiJson.cpp
         Builtins/Functions/WtiiJson.h
         Builtins/Functions/Files.cpp
-        Builtins/Functions/Files.h)
+        Builtins/Functions/Files.h
+        LIbraries/IWtiiLibrary.h
+        LIbraries/WtiiLibraryFactory.cpp
+        LIbraries/WtiiLibraryFactory.h)
 
 # CLion doesn't add new files to both targets automatically, only the last one which is the library

@@ -1,3 +1,6 @@
+#ifndef WTIIINTERPRETER_SCOPE_H
+#define WTIIINTERPRETER_SCOPE_H
+
 #include <map>
 #include <string>
 #include "ParsedScripts/ClassDefinition.h"
@@ -17,10 +20,10 @@ public:
         Classes = parent.Classes;
     }
 
-    void AppendScope(const Scope& scope) {
-        Variables.insert(scope.Variables.begin(), scope.Variables.end());
-        Functions.insert(scope.Functions.begin(), scope.Functions.end());
-        Classes.insert(scope.Classes.begin(), scope.Classes.end());
+    void AppendScope(Scope* scope) {
+        Variables.insert(scope->Variables.begin(), scope->Variables.end());
+        Functions.insert(scope->Functions.begin(), scope->Functions.end());
+        Classes.insert(scope->Classes.begin(), scope->Classes.end());
     }
 
     void SetVariable(const std::string& name, Value* value) {
@@ -28,3 +31,5 @@ public:
         else Variables.insert({name, {value->ObjectType, value}});
     }
 };
+
+#endif //WTIIINTERPRETER_SCOPE_H

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 #include "Utils.h"
 #include "ParsedScripts/Values/Constant.h"
 
@@ -30,4 +31,19 @@ void Utils::DumpErrorInfo(const RuntimeException& e) {
     }
 
     std::cerr << "Value: " << val->ToString() << std::endl;
+}
+
+std::string Utils::GetAbsolutePath(const std::string& path) {
+    std::filesystem::path pathInput(path);
+
+    // Add current path if the input path is relative
+    std::filesystem::path fullPath;
+    if (pathInput.is_absolute()) {
+        fullPath = pathInput;
+    } else {
+        std::filesystem::path currentPath = std::filesystem::current_path();
+        fullPath = currentPath / pathInput;
+    }
+    fullPath = fullPath.lexically_normal();
+    return fullPath.string();
 }

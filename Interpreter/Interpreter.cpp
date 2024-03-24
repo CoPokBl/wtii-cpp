@@ -18,6 +18,8 @@
 #include "../ParsedScripts/Statements/EnterScopeStatement.h"
 #include "../ParsedScripts/Statements/ExitScopeStatement.h"
 #include "../ParsedScripts/Statements/LoadLibStatement.h"
+#include "../LIbraries/WtiiLibraryFactory.h"
+#include "../Parser/Parser.h"
 
 
 static std::stack<Scope*> scopes;
@@ -563,25 +565,45 @@ void Interpreter::LoadLibrary(const std::string &name) {
     bool containsPeriod = name.find('.') != std::string::npos;
     std::string fileExtension = containsPeriod ? name.substr(name.find_last_of('.') + 1) : "";
 
+    std::vector<IWtiiLibrary*> libs;
     if (fileExtension == "wtii") {  // WTII library file
         // TODO: Load the library
         // This will involve reading the file and parsing/interpreting it
         // which is not currently implemented.
-    } else if (fileExtension == "dll") {  // C# library file
-        // TODO: Load the library
-        // This will involve loading the DLL and calling the functions.
+    } else if (fileExtension == "dll" || fileExtension == "so") {  // C++ Library
+        WtiiLibraryFactory factory;
+        factory.LoadLibraries(name);
+        IWtiiLibrary* lib = factory.createInstance();
+        libs.push_back(lib);
     } else if (fileExtension.empty()) {  // Check for builtin
         if (BuiltIns::Libraries.count(name) == 0) {
             throw_err("Library " + name + " does not exist.");
         }
 
-        // TODO: Load the library
-        // Builtin libraries are not currently supported.
+        IWtiiLibrary* lib = BuiltIns::Libraries.find(name)->second;
+        libs.push_back(lib);
+    } else if (fileExtension == "json" || fileExtension == "wtiic") {  // Pre parsed library
+        ParsedScript lib = Parser::Parse(name);
+        for (ClassDefinition* cl : lib.Classes) {
+            scopes.top()->Classes[cl->Name] = cl;
+        }
+
+        MethodDefinitionStatement mainMethod = MethodDefinitionStatement();
+        mainMethod.Name = "main";
+        mainMethod.ReturnType = "int";
+        mainMethod.Statements = lib.Statements;
+        ExecuteFunction(&mainMethod);
     } else {
         throw_err("Library file extension not recognised: " + fileExtension);
     }
 
     file.close();
+
+    for (auto lib : libs) {
+        lib->Init();
+        scopes.top()->AppendScope(lib->GetScope());
+        lib->Run();
+    }
 
 #ifdef DEBUG
     std::cout << "Loaded library: " << name << std::endl;

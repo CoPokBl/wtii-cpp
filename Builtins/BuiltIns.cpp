@@ -119,5 +119,6 @@ const std::map<std::string, std::function<Value*(std::vector<Value*>)>> BuiltIns
         { "from_json", WtiiJson::FromJson }
 };
 
-const std::map<std::string, int> BuiltIns::Libraries = {
+const std::map<std::string, IWtiiLibrary*> BuiltIns::Libraries = {
+        { "Http", nullptr }
 };
