@@ -4,18 +4,25 @@
 #include "ParsedScripts/ParsedScript.h"
 #include "Parser/Parser.h"
 #include "Interpreter/Interpreter.h"
+//#define DEBUG
 
 extern "C" {
 
-    int interpret(std::string filename) {
+    int interpret(const char* filename) {
 #ifdef DEBUG
         std::cout << "Using file: " << filename << std::endl;
 #endif
 
-        std::ifstream file("script_parsed.json");
+        std::ifstream file;
+        try {
+            file = std::ifstream(filename);
 
-        if (!file) {
-            std::cerr << "Unable to open file";
+            if (!file) {
+                std::cerr << "Unable to open file: " << filename << std::endl;
+                return 1; // return with error code
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error with opening file (" << filename << "): " << e.what() << std::endl;
             return 1; // return with error code
         }
 
@@ -36,4 +43,8 @@ extern "C" {
         return result;
     }
 
+}
+
+int Library::InterpretFile(const std::string& filename) {
+    return interpret(filename.c_str());
 }

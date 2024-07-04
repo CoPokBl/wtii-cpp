@@ -12,7 +12,12 @@
 #endif
 
 extern "C" {
-    EXPORT int interpret(std::string filename);
+    EXPORT int interpret(const char* filename);
 }
+
+class Library {
+public:
+    static int InterpretFile(const std::string& filename);
+};
 
 #endif //WTIIINTERPRETER_LIBRARY_H
