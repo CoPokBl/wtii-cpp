@@ -18,7 +18,7 @@
 #include "../ParsedScripts/Statements/EnterScopeStatement.h"
 #include "../ParsedScripts/Statements/ExitScopeStatement.h"
 #include "../ParsedScripts/Statements/LoadLibStatement.h"
-#include "../LIbraries/WtiiLibraryFactory.h"
+#include "../Libraries/WtiiLibraryFactory.h"
 #include "../Parser/Parser.h"
 
 

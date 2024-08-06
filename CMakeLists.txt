@@ -54,9 +54,9 @@ set(SOURCE_FILES
         Builtins/Functions/WtiiJson.h
         Builtins/Functions/Files.cpp
         Builtins/Functions/Files.h
-        LIbraries/IWtiiLibrary.h
-        LIbraries/WtiiLibraryFactory.cpp
-        LIbraries/WtiiLibraryFactory.h
+        Libraries/IWtiiLibrary.h
+        Libraries/WtiiLibraryFactory.cpp
+        Libraries/WtiiLibraryFactory.h
         library.h
         library.cpp
 )

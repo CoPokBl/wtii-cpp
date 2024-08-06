@@ -7,7 +7,7 @@
 #include <functional>
 #include "../ParsedScripts/Values/Value.h"
 #include "../ParsedScripts/Statements/MethodDefinitiionStatement.h"
-#include "../LIbraries/IWtiiLibrary.h"
+#include "../Libraries/IWtiiLibrary.h"
 
 class BuiltIns {
 public:
