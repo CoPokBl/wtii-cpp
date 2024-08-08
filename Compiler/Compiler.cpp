@@ -3,7 +3,7 @@
 
 std::vector<std::string>* Split(std::string code) {
     std::vector<std::string> lines;
-    std::string currentLine = "";
+    std::string currentLine;
     bool escape = false;
     bool inString = false;
 
