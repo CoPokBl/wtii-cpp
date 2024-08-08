@@ -47,3 +47,27 @@ std::string Utils::GetAbsolutePath(const std::string& path) {
     fullPath = fullPath.lexically_normal();
     return fullPath.string();
 }
+
+std::string Utils::TrimString(const std::string &val) {
+    int firstNonSpace = -1;
+    for (int i = 0; i < val.size(); ++i) {
+        if (val[i] == ' ') {
+            continue;
+        }
+
+        firstNonSpace = i;
+        break;
+    }
+
+    int lastNonSpace = -1;
+    for (int i = val.size(); i > 0; --i) {
+        if (val[i] == ' ' || val[i] == '\0') {
+            continue;
+        }
+
+        lastNonSpace = i+1;
+        break;
+    }
+
+    return val.substr(firstNonSpace, lastNonSpace - firstNonSpace);
+}

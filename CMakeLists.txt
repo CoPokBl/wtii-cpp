@@ -59,6 +59,13 @@ set(SOURCE_FILES
         Libraries/WtiiLibraryFactory.h
         library.h
         library.cpp
+        Compiler/Compiler.cpp
+        Compiler/Compiler.h
+        Testing/UnitTester.cpp
+        Testing/UnitTester.h
+        Testing/TestFailedException.h
+        Testing/TestMethods.h
+        Testing/Tests/UtilsTest.h
 )
 
 add_executable(WtiiInterpreter ${SOURCE_FILES})

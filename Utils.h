@@ -18,6 +18,7 @@ public:
     static std::vector<std::string> SubVector(const std::vector<std::string>& vec, int start, int end);
     static void DumpErrorInfo(const RuntimeException& e);
     static std::string GetAbsolutePath(const std::string& path);
+    static std::string TrimString(const std::string& val);
 };
 
 
