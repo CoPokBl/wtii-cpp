@@ -6,6 +6,7 @@
 class Compiler {
 public:
     static ParsedScript* Parse(std::string code);
+    static ParsedScript* Parse(std::vector<std::string>& lines, bool newScope = true);
 };
 
 

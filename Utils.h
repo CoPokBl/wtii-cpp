@@ -19,6 +19,8 @@ public:
     static void DumpErrorInfo(const RuntimeException& e);
     static std::string GetAbsolutePath(const std::string& path);
     static std::string TrimString(const std::string& val);
+    static bool ContainsChar(const std::string& str, const char& v);
+    static std::vector<std::string> SplitString(const std::string& str, const char& delimiter);
 };
 
 

@@ -71,3 +71,16 @@ std::string Utils::TrimString(const std::string &val) {
 
     return val.substr(firstNonSpace, lastNonSpace - firstNonSpace);
 }
+
+bool Utils::ContainsChar(const std::string &str, const char &v) {
+    for (char c : str) {
+        if (c == v) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::vector<std::string> Utils::SplitString(const std::string &str, const char &delimiter) {
+    // TODO: Implement
+}

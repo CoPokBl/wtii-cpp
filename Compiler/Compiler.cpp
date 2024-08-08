@@ -1,7 +1,23 @@
 #include "Compiler.h"
-#include "../Utils.h"
 
-std::vector<std::string>* Split(std::string code) {
+#include <utility>
+#include <stack>
+#include "../Utils.h"
+#include "../Scope.h"
+
+std::stack<Scope> scopes;
+Scope defaultScope = Scope();
+std::string currentLine;
+
+void NewScope() {
+    scopes.emplace(scopes.empty() ? defaultScope : scopes.top());
+}
+
+void EndScope() {
+    scopes.pop();
+}
+
+std::vector<std::string>& Split(std::string code) {
     std::vector<std::string> lines;
     std::string currentLine;
     bool escape = false;
@@ -56,9 +72,40 @@ std::vector<std::string>* Split(std::string code) {
         lines.push_back(currentLine);
     }
     lines.emplace_back("");
-    return &lines;
+    return lines;
 }
 
 ParsedScript* Compiler::Parse(std::string code) {
-    return nullptr;
+    return Compiler::Parse(Split(std::move(code)));
+}
+
+ParsedScript *Compiler::Parse(std::vector<std::string>& lines, bool newScope) {
+    if (newScope) NewScope();
+    std::vector<Statement> statements;
+    std::vector<ClassDefinition> classes;
+
+    try {
+        for (int statement = 0; statement < lines.size(); ++statement) {
+            std::string l = Utils::TrimString(lines[statement]);
+            currentLine = l;
+
+            if (l == "") {
+                continue;
+            }
+
+            std::string token;
+            bool handled = false;
+            for (char c : l) {
+                switch (c) {
+                    case '(':
+                    // Function definition
+                    {
+                        if (Utils::ContainsChar(token, ' ')) {  // It is a definition
+                            std::vector<std::string> parts =
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
