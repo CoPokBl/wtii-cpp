@@ -82,5 +82,37 @@ bool Utils::ContainsChar(const std::string &str, const char &v) {
 }
 
 std::vector<std::string> Utils::SplitString(const std::string &str, const char &delimiter) {
-    // TODO: Implement
+    std::vector<std::string> result;
+    std::string current;
+    for (char c : str) {
+        if (c == delimiter) {
+            result.push_back(current);
+            current.clear();
+        } else {
+            current += c;
+        }
+    }
+    result.push_back(current);
+    return result;
+}
+
+// Split string but don't split if the delimiter is inside a string
+std::vector<std::string> Utils::SafeSplit(const std::string &str, const char &delimiter) {
+    std::vector<std::string> result;
+    std::string current;
+    bool inString = false;
+    for (char c : str) {
+        if (c == '"') {
+            inString = !inString;
+        }
+
+        if (c == delimiter && !inString) {
+            result.push_back(current);
+            current.clear();
+        } else {
+            current += c;
+        }
+    }
+    result.push_back(current);
+    return result;
 }

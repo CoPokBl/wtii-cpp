@@ -21,6 +21,7 @@ public:
     static std::string TrimString(const std::string& val);
     static bool ContainsChar(const std::string& str, const char& v);
     static std::vector<std::string> SplitString(const std::string& str, const char& delimiter);
+    static std::vector<std::string> SafeSplit(const std::string& str, const char& delimiter);
 };
 
 

@@ -75,6 +75,34 @@ std::vector<std::string>& Split(std::string code) {
     return lines;
 }
 
+static std::vector<std::string> Split(const std::vector<std::string>& lines, int startIndex, int& finishPoint) {
+    int closingBracket = -1;
+    int bracketCount = 0;
+    for (int i = 0; i < lines.size(); ++i) {
+        std::string line2 = lines[i];
+        for (int j = 0; j < line2.size(); ++j) {
+            char c2 = line2[j];
+            if (c2 == '{') {
+                bracketCount++;
+            } else if (c2 == '}') {
+                bracketCount--;
+                if (bracketCount == 0) {
+                    closingBracket = i;
+                    break;
+                }
+            }
+        }
+        
+        if (closingBracket != -1) {
+            break;
+        }
+    }
+    
+    std::vector<std::string> bodyLines = Utils::SubVector(lines, startIndex + 2, closingBracket);
+    finishPoint = closingBracket;
+    return bodyLines;
+}
+
 ParsedScript* Compiler::Parse(std::string code) {
     return Compiler::Parse(Split(std::move(code)));
 }
@@ -101,8 +129,74 @@ ParsedScript *Compiler::Parse(std::vector<std::string>& lines, bool newScope) {
                     // Function definition
                     {
                         if (Utils::ContainsChar(token, ' ')) {  // It is a definition
-                            std::vector<std::string> parts =
+                            std::vector<std::string> parts = Utils::SplitString(token, ' ');
+                            std::string returnType = parts[0];
+                            std::string name = parts[1];
+                            std::string argsString = l.substr(token.size() + 1, l.size() - token.size() - 2);
+                            std::vector<std::string> rawArgs = Utils::SplitString(argsString, ',');
+                            
+                            // Remove empty args
+                            std::vector<std::string> args;
+                            for (std::string &arg : rawArgs) {
+                                std::string trimmed = Utils::TrimString(arg);
+                                if (trimmed != "") args.push_back(trimmed);
+                            }
+                            rawArgs.clear();
+
+                            // Split args into arg types
+                            std::map<std::string, std::string> argTypes;
+                            for (std::string arg : args) {
+                                std::vector<std::string> argParts = Utils::SplitString(arg, ' ');
+                                argTypes[argParts[0]] = argParts[1];
+                            }
+                            
+                            // Get body
+                            int closingBracket = -1;
+                            std::vector<std::string> body = Split(lines, statement, closingBracket);
+                            
+                            NewScope();
+                            
+                            // Add args to scope
+                            for (std::pair<std::string, std::string> thing : argTypes) {
+                                scopes.top().SetVariable(thing.first, new Constant("NULL", thing.second));
+                            }
+                            
+                            // Convert the map to a vector of pairs of <string, string> for name and types
+                            std::vector<std::pair<std::string, std::string>> argPairs;
+                            for (std::pair<std::string, std::string> pair : argTypes) {
+                                argPairs.push_back(pair);
+                            }
+                            
+                            MethodDefinitionStatement def = MethodDefinitionStatement(name, returnType, argPairs);
+                            EndScope();
+                            
+                            statements.push_back(def);
+                            scopes.top().Functions[name] = &def;
+                            handled = true;
+                            
+                            // Move statement index to closing bracket
+                            statement = closingBracket + 1;
+                            break;
                         }
+                    }
+                    
+                    // Function call
+                    {
+                        std::string argsString = l.substr(token.size(), l.size() - token.size());
+                        std::vector<std::string> args;
+
+                        if (argsString != "()") {
+                            argsString = argsString.substr(1, argsString.size() - 2);
+                            std::vector<std::string> rawArgs = argsString.substr() Utils::SplitString(argsString, ',');
+                            
+                            // Remove empty args
+                            for (std::string &arg : rawArgs) {
+                                std::string trimmed = Utils::TrimString(arg);
+                                if (trimmed != "") args.push_back(trimmed);
+                            }
+                        }
+                        
+                        
                     }
                 }
             }
