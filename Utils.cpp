@@ -81,11 +81,11 @@ bool Utils::ContainsChar(const std::string &str, const char &v) {
     return false;
 }
 
-std::vector<std::string> Utils::SplitString(const std::string &str, const char &delimiter) {
+std::vector<std::string> Utils::SplitString(const std::string &str, const char &delimiter, const int& amount) {
     std::vector<std::string> result;
     std::string current;
     for (char c : str) {
-        if (c == delimiter) {
+        if (c == delimiter && result.size() <= amount) {
             result.push_back(current);
             current.clear();
         } else {
@@ -115,4 +115,8 @@ std::vector<std::string> Utils::SafeSplit(const std::string &str, const char &de
     }
     result.push_back(current);
     return result;
+}
+
+std::vector<std::string> Utils::SplitString(const std::string &str, const std::string &delimiter, const int &amount) {
+    return std::vector<std::string>();  // TODO: Implement
 }
