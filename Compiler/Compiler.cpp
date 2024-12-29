@@ -9,9 +9,7 @@
 #include "../ParsedScripts/Values/ClassInstance.h"
 #include "../CompilerException.h"
 #include "../ParsedScripts/Values/MethodCall.h"
-#include "../ParsedScripts/Statements/FunctionCallStatement.h"
 #include "../ParsedScripts/Values/Constant.h"
-#include "../ParsedScripts/Values/Variable.h"
 #include "../ParsedScripts/Statements/VariableSetStatement.h"
 #include "../ParsedScripts/Statements/ReturnStatement.h"
 #include "../ParsedScripts/Statements/LoadLibStatement.h"
@@ -310,9 +308,11 @@ Value* Compiler::EvalValue(std::string value, std::string& type) {
 
         // Logical boolean operators
         if (!inString && !op.empty()) {
-            std::vector<std::string> parts = Utils::SplitString(value, op, )
+            // TODO std::vector<std::string> parts = Utils::SplitString(value, op, );
         }
     }
+    
+    return nullptr;  // TODO
 }
 
 std::vector<Value*> Compiler::EvalValues(const std::vector<std::string>& args) {

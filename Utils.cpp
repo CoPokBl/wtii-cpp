@@ -131,6 +131,6 @@ std::vector<std::string> Utils::SafeSplit(const std::string &str, const char &de
     return result;
 }
 
-std::vector<std::string> Utils::SplitString(const std::string &str, const std::string &delimiter, const int &amount) {
+std::vector<std::string> Utils::SplitString(const std::string &str, const std::string &delimiter, int count) {
     return std::vector<std::string>();  // TODO: Implement
 }
