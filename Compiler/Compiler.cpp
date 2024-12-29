@@ -2,8 +2,16 @@
 
 #include <utility>
 #include <stack>
+#include <cstring>
+#include <iostream>
 #include "../Utils.h"
 #include "../Scope.h"
+#include "../ParsedScripts/Statements/FunctionCallStatement.h"
+#include "../ParsedScripts/Values/Variable.h"
+#include "../ParsedScripts/Statements/VariableSetStatement.h"
+#include "../ParsedScripts/Statements/ReturnStatement.h"
+#include "../ParsedScripts/Statements/LoadLibStatement.h"
+#include "../ParsedScripts/Statements/IfStatement.h"
 
 std::stack<Scope> scopes;
 Scope defaultScope = Scope();
@@ -109,8 +117,8 @@ ParsedScript* Compiler::Parse(std::string code) {
 
 ParsedScript *Compiler::Parse(std::vector<std::string>& lines, bool newScope) {
     if (newScope) NewScope();
-    std::vector<Statement> statements;
-    std::vector<ClassDefinition> classes;
+    std::vector<Statement*> statements;
+    std::vector<ClassDefinition*> classes;
 
     try {
         for (int statement = 0; statement < lines.size(); ++statement) {
@@ -167,11 +175,11 @@ ParsedScript *Compiler::Parse(std::vector<std::string>& lines, bool newScope) {
                                 argPairs.push_back(pair);
                             }
                             
-                            MethodDefinitionStatement def = MethodDefinitionStatement(name, returnType, argPairs);
+                            auto* def = new MethodDefinitionStatement(name, returnType, argPairs);
                             EndScope();
                             
                             statements.push_back(def);
-                            scopes.top().Functions[name] = &def;
+                            scopes.top().Functions[name] = def;
                             handled = true;
                             
                             // Move statement index to closing bracket
@@ -187,19 +195,132 @@ ParsedScript *Compiler::Parse(std::vector<std::string>& lines, bool newScope) {
 
                         if (argsString != "()") {
                             argsString = argsString.substr(1, argsString.size() - 2);
-                            std::vector<std::string> rawArgs = argsString.substr() Utils::SplitString(argsString, ',');
+                            std::vector<std::string> rawArgs = Utils::SplitString(argsString, ',');
                             
-                            // Remove empty args
+                            // Trim all args
                             for (std::string &arg : rawArgs) {
                                 std::string trimmed = Utils::TrimString(arg);
                                 if (trimmed != "") args.push_back(trimmed);
                             }
                         }
                         
+                        std::vector<std::string> parts;
+                        std::string type;
+                        Compiler::ParseDotNotationMethod(token, parts, type);
                         
+                        std::vector<Value*> argsValues;
+                        for (std::string &arg : args) {
+                            argsValues.push_back(EvalValue(arg));
+                        }
+                        auto* call = new FunctionCallStatement(parts, argsValues);
+                        
+                        statements.push_back(call);
+                        handled = true;
+                        break;
+                    }
+                    
+                    case '=':
+                    // Variable init
+                    // Example: int x = 5;
+                    {
+                        std::vector<std::string> parts = Utils::SplitString(l, '=');
+                        std::string declaration = Utils::TrimString(parts[0]);
+                        
+                        std::vector<std::string> declarationParts = Utils::SplitString(declaration, ' ');
+                        if (declarationParts.size() == 2) {  // Otherwise it isn't a declaration
+                            std::string type = declarationParts[0];
+                            std::string name = declarationParts[1];
+                            std::string value = Utils::TrimString(parts[1]);
+                            
+                            auto* init = new VariableInitStatement(name, EvalValue(value), type);
+                            
+                            statements.push_back(init);
+                            scopes.top().SetVariable(name, init->VarValue);
+                            handled = true;
+                            break;
+                        }
+                    }
+                    
+                    // Variable set
+                    {
+                        std::vector<std::string> parts = Utils::SplitString(l, '=', 2);
+                        std::string name = Utils::TrimString(parts[0]);
+                        std::string value = Utils::TrimString(parts[1]);
+                        std::string type;
+                        Variable* var = ParseDotNotationVariable(name, type);
+                        
+                        auto* set = new VariableSetStatement(var->Path, EvalValue(value), var->ObjectType);
+                        statements.push_back(set);
+                        handled = true;
+                        break;
+                    }
+                    
+                    
+                    // All space based keyword statements
+                    case ' ': {
+                        if (token == "return") {
+                            std::string value = l.substr(7);
+                            auto* ret = new ReturnStatement(EvalValue(value));
+                            statements.push_back(ret);
+                            handled = true;
+                            break;
+                        }
+
+                        else if (token == "use") {
+                            std::string lib = l.substr(4);
+                            
+                            Value* fileName = EvalValue(lib);
+                            if (fileName->ObjectType != "string") {
+                                throw_err("Library name must be a string.");
+                            }
+                            
+                            // Omitting the constant lib name requirement for added flexibility
+                            
+                            // Check if it is constant to see if we can load it now
+                            Constant* fileNameConst = dynamic_cast<Constant*>(fileName);
+                            if (fileNameConst != nullptr) {
+                                // TODO: Load the library
+                            }
+                            
+                            auto* loadLib = new LoadLibStatement(lib);
+                            statements.push_back(loadLib);
+                            handled = true;
+                            break;
+                        }
+                        
+                        else if (token == "if") {
+                            std::string condition = l.substr(4, l.size() - 5);
+                            Value* conditionValue = EvalValue(condition);
+                            if (conditionValue->ObjectType != "bool") {
+                                throw_err("If condition must be a boolean.");
+                            }
+                            
+                            // TODO: Finish
+                            break;
+                        }
                     }
                 }
             }
         }
+    } catch (RuntimeException& e) {
+        std::cerr << "An error has occurred on line: " << currentLine << std::endl;
+        throw e;
     }
+    
+    auto* script = new ParsedScript();
+    script->Statements = statements;
+    script->Classes = classes;
+    return script;
+}
+
+MethodDefinitionStatement* Compiler::ParseDotNotationMethod(std::string value, std::vector<std::string> &parts, std::string &type) {
+    return nullptr;  // TODO
+}
+
+Value *Compiler::EvalValue(const std::string &value) {
+    return nullptr;  // TODO
+}
+
+Variable *Compiler::ParseDotNotationVariable(std::string value, std::string &type) {
+    return nullptr;  // TODO
 }
