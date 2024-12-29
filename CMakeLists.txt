@@ -66,6 +66,7 @@ set(SOURCE_FILES
         Testing/TestFailedException.h
         Testing/TestMethods.h
         Testing/Tests/UtilsTest.h
+        CompilerException.h
 )
 
 add_executable(WtiiInterpreter ${SOURCE_FILES})

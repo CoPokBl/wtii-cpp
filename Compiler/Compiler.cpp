@@ -6,16 +6,39 @@
 #include <iostream>
 #include "../Utils.h"
 #include "../Scope.h"
+#include "../ParsedScripts/Values/ClassInstance.h"
+#include "../CompilerException.h"
+#include "../ParsedScripts/Values/MethodCall.h"
 #include "../ParsedScripts/Statements/FunctionCallStatement.h"
+#include "../ParsedScripts/Values/Constant.h"
 #include "../ParsedScripts/Values/Variable.h"
 #include "../ParsedScripts/Statements/VariableSetStatement.h"
 #include "../ParsedScripts/Statements/ReturnStatement.h"
 #include "../ParsedScripts/Statements/LoadLibStatement.h"
 #include "../ParsedScripts/Statements/IfStatement.h"
 
+#define fail(val) throw CompilerException(val)
+#define null Constant("NULL", "NULL")            // null constant value
+#define nullp new Constant("NULL", "NULL")       // null constant value as pointer
+
+// Scope data
 std::stack<Scope> scopes;
 Scope defaultScope = Scope();
+
+// Used to debug errors
 std::string currentLine;
+
+// Constants
+const static std::string ReservedCharacters = "+=-/* (){};[]!\"";
+const static std::string PrimitiveTypes[] = {
+        "int", "float", "string", "bool", "NULL"
+};
+
+bool IsReservedCharacter(const char& c) {
+    return std::any_of(ReservedCharacters.begin(), ReservedCharacters.end(), [&c](const char& cc) {
+        return cc == c;
+    });
+}
 
 void NewScope() {
     scopes.emplace(scopes.empty() ? defaultScope : scopes.top());
@@ -111,6 +134,196 @@ static std::vector<std::string> Split(const std::vector<std::string>& lines, int
     return bodyLines;
 }
 
+static ClassInstance* GetFinalDotNotationValue(const std::string& value, std::vector<std::string>& parts, std::string& lastSymbol) {
+    parts = Utils::SplitString(value, '.');
+    std::string varName = parts[parts.size()-2];  // ^1
+
+    if (parts.size() == 1) {
+        lastSymbol = value;
+        return nullptr;
+    }
+
+    // For each part except the last part
+    std::pair<std::string, Value*>* lastVar = nullptr;
+    for (int i = 0; i < parts.size(); ++i) {
+        std::string part = parts[i];
+        std::string requiredNextVariableName = parts[i + 1];
+
+        auto* classInstance = lastVar == nullptr ? nullptr : dynamic_cast<ClassInstance*>(lastVar->second);
+        if (lastVar != nullptr && classInstance == nullptr) {
+            fail("lastVar is not a ClassInstance");
+        }
+
+        std::map<std::string, std::pair<std::string, Value*>> vars = lastVar == nullptr ? scopes.top().Variables : classInstance->Properties;
+
+        if (!std::any_of(vars.begin(), vars.end(), [&part](
+                const std::pair<const std::basic_string<char>, std::pair<std::string, Value*>>& c) {
+            return c.first == part;
+        })) {  // Check to ensure that the function is in the current scope
+            fail("Unknown variable: " + part + ".");
+        }
+
+        std::pair<std::string, Value*> var = vars[part];
+
+        // Realloc space for var to stop it going out of scope and free existing memory from
+        // var if it already exists. Create a new pointer for it before copying value.
+        delete lastVar;
+        lastVar = new std::pair<std::string, Value *>;
+        *lastVar = var;
+
+        // Check class
+        if (!std::any_of(scopes.top().Classes.begin(), scopes.top().Classes.end(), [&var](
+                const std::pair<const std::basic_string<char>, ClassDefinition*>& c) {
+            return c.first == var.first;
+        })) {
+            fail("Unknown class: " + part + ".");
+        }
+        ClassDefinition* classDef = scopes.top().Classes[var.first];
+
+        // Check variable
+        if (std::all_of(classDef->Variables.begin(), classDef->Variables.end(), [&requiredNextVariableName](
+                VariableInitStatement* v) {
+            return v->Name != requiredNextVariableName;
+        }) &&
+        std::all_of(classDef->Methods.begin(), classDef->Methods.end(), [&requiredNextVariableName](
+                MethodDefinitionStatement* v) {
+            return v->Name != requiredNextVariableName;
+        })) {
+            fail("Unknown variable: " + part + ".");
+        }
+    }
+
+    lastSymbol = parts[parts.size() - 2];
+
+    auto* mc = lastVar == nullptr ? nullptr : dynamic_cast<MethodCall*>(lastVar->second);
+    if (mc != nullptr) {
+        std::string classType = lastVar->first;
+
+        if (!std::any_of(scopes.top().Classes.begin(), scopes.top().Classes.end(), [&classType](
+                const std::pair<const std::basic_string<char>, ClassDefinition*>& c) {
+            return c.first == classType;
+        })) {
+            fail("Unknown class: " + classType + ".");
+        }
+        ClassDefinition* classDef = scopes.top().Classes[classType];
+        return new ClassInstance(classDef);
+    }
+    delete mc;  // Free it since we never even use it
+
+    auto* cI = lastVar == nullptr ? nullptr : dynamic_cast<ClassInstance*>(lastVar->second);
+    if (cI == nullptr) {
+        fail("lastVar is null or not a class");
+    }
+
+    return cI;
+}
+
+static MethodDefinitionStatement* ParseDotNotationMethod(const std::string& val, std::vector<std::string>& parts, std::string& type) {
+    std::string finalPart;
+    ClassInstance* finalInstance = GetFinalDotNotationValue(val, parts, finalPart);
+
+    if (finalInstance == nullptr) {  // It's from the current scope
+        if (!std::any_of(scopes.top().Functions.begin(), scopes.top().Functions.end(), [&val](
+                const std::pair<const std::basic_string<char>, MethodDefinitionStatement*>& c) {
+            return c.first == val;
+        })) {  // Check to ensure that the function is in the current scope
+            fail("Unknown function: " + val + ".");
+        }
+
+        type = scopes.top().Functions[val]->ReturnType;
+        return scopes.top().Functions[val];
+    }
+
+    if (!std::any_of(finalInstance->Methods.begin(), finalInstance->Methods.end(), [&finalPart](
+            const std::pair<const std::basic_string<char>, MethodDefinitionStatement*>& c) {
+        return c.first == finalPart;
+    })) {
+        fail("Unknown method: " + finalPart + ".");
+    }
+
+    MethodDefinitionStatement* finalMethod = finalInstance->Methods[finalPart];
+
+    type = finalMethod->ReturnType;
+    return finalMethod;
+}
+
+Value* Compiler::EvalValue(std::string value, std::string& type) {
+    value = Utils::TrimString(value);
+
+    if (value == "NULL") {
+        type = "NULL";
+        return nullp;
+    }
+
+    if (Utils::ContainsChar(value, '(') && Utils::ContainsChar(value, ')')) {
+        // To get the method name we go back from ( until we hit a reserved character
+        std::string methodName = "";
+        for (int i = value.find('(') - 1; i >= 0; --i) {
+            char c = value[i];
+            if (IsReservedCharacter(c)) {
+                break;
+            }
+
+            // This is `c + methodName`
+            methodName.insert(methodName.begin(), c);
+        }
+
+        std::vector<std::string> parts;
+        ParseDotNotationMethod(methodName, parts, type);
+
+        // Split into before bracket and after bracket and ignore the last character of the second part
+        std::string argsString = Utils::SplitString(value, '(')[1].substr(0, value.size() - 2);
+        std::vector<std::string> args = Utils::SplitString(argsString, ',');
+        std::vector<Value*> valueArgs;   // Init empty and populate if argsString != ""
+
+        if (!argsString.empty()) {
+            valueArgs = Compiler::EvalValues(args);
+        }
+
+        return new MethodCall(parts, valueArgs);
+    }
+
+    // Check for operators by going through each character checking if it's an operator and ignoring if it's part of a string
+    bool inString = false;
+    for (int i = 0; i < value.size(); ++i) {
+        char c = value[i];
+        if (c == '"') {
+            inString = !inString;
+        }
+
+        if (inString) {
+            continue;
+        }
+
+        char nc = value.size()-1 <= i ? ' ' : value[i + 1];
+        std::string op;  // Empty means no operator
+
+        // Checks for operators, with c (current character) and nc (next character)
+        if (c == '!' && nc == '=') op = "!=";
+        else if (c == '=' && nc == '=') op = "==";
+        else if (c == '<' && nc == '=') op = "<=";
+        else if (c == '>' && nc == '=') op = ">=";
+        else if (c == '|' && nc == '|') op = "||";
+        else if (c == '&' && nc == '&') op = "&&";
+        else if (c == '<') op = "<";
+        else if (c == '>') op = ">";
+
+        // Logical boolean operators
+        if (!inString && !op.empty()) {
+            std::vector<std::string> parts = Utils::SplitString(value, op, )
+        }
+    }
+}
+
+std::vector<Value*> Compiler::EvalValues(const std::vector<std::string>& args) {
+    std::vector<Value*> out;
+    for (const std::string& arg : args) {
+        std::string type;
+        out.push_back(Compiler::EvalValue(arg, type));
+    }
+    return out;
+}
+
 ParsedScript* Compiler::Parse(std::string code) {
     return Compiler::Parse(Split(std::move(code)));
 }
@@ -195,14 +408,14 @@ ParsedScript *Compiler::Parse(std::vector<std::string>& lines, bool newScope) {
 
                         if (argsString != "()") {
                             argsString = argsString.substr(1, argsString.size() - 2);
-                            std::vector<std::string> rawArgs = Utils::SplitString(argsString, ',');
+                            std::vector<std::string> rawArgs = Utils::SafeSplit(argsString.substr(1, argsString.size()-1), ',');
                             
                             // Trim all args
                             for (std::string &arg : rawArgs) {
                                 std::string trimmed = Utils::TrimString(arg);
                                 if (trimmed != "") args.push_back(trimmed);
                             }
-                        }
+                        }  // Otherwise leave the vector empty
                         
                         std::vector<std::string> parts;
                         std::string type;
@@ -324,3 +537,6 @@ Value *Compiler::EvalValue(const std::string &value) {
 Variable *Compiler::ParseDotNotationVariable(std::string value, std::string &type) {
     return nullptr;  // TODO
 }
+
+
+// Walter was here.

@@ -22,6 +22,7 @@ public:
     static bool ContainsChar(const std::string& str, const char& v);
     static std::vector<std::string> SplitString(const std::string& str, const char& delimiter);
     static std::vector<std::string> SplitString(const std::string& str, const char& delimiter, int count);
+    static std::vector<std::string> SplitString(const std::string& str, const std::string& delimiter, int amount);
     static std::vector<std::string> SafeSplit(const std::string& str, const char& delimiter);
 };
 
